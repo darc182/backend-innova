@@ -3,7 +3,7 @@ import {
     getCarrito, 
     agregarItemCarrito, 
     actualizarCarrito, 
-    eliminarCarrito 
+    eliminarItemCarrito
   } from "../controllers/carritoController.js";
 import { checkAuth } from "../middleware/authMiddleware.js";
 
@@ -20,6 +20,6 @@ router.post("/", checkAuth, agregarItemCarrito);
 router.put("/", checkAuth, actualizarCarrito);
 
 // Vaciar el carrito
-router.delete("/", checkAuth, eliminarCarrito);
+router.delete('/item/:productoId', checkAuth, eliminarItemCarrito);
 
 export default router;

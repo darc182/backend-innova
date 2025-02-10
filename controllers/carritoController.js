@@ -5,10 +5,13 @@ import Producto from "../models/Producto.js";
 const getCarrito = async (req, res) => {
   try {
     const carrito = await Carrito.findOne({ usuario: req.usuario._id })
-      .populate("items.productoId");
-    return res.json(carrito);
+      .populate({
+        path: 'items.productoId',
+        model: 'Producto'
+      });
+    res.json(carrito);
   } catch (error) {
-    return res.status(500).json({ message: "Error al obtener el carrito", error: error.message });
+    res.status(500).json({ message: "Error al obtener el carrito", error: error.message });
   }
 };
 
@@ -66,18 +69,17 @@ const actualizarCarrito = async (req, res) => {
 };
 
 // Vaciar el carrito (eliminar todos los items)
-const eliminarCarrito = async (req, res) => {
+const eliminarItemCarrito = async (req, res) => {
   try {
-    let carrito = await Carrito.findOne({ usuario: req.usuario._id });
-    if (!carrito) {
-      return res.status(404).json({ message: "Carrito no encontrado" });
-    }
-    carrito.items = [];
-    carrito.precioTotal = 0;
+    const carrito = await Carrito.findOne({ usuario: req.usuario._id });
+    carrito.items = carrito.items.filter(item => 
+      item.productoId.toString() !== req.params.productoId
+    );
+    carrito.precioTotal = await calcularPrecioTotal(carrito.items);
     await carrito.save();
-    return res.json({ message: "Carrito vaciado" });
+    res.json(carrito);
   } catch (error) {
-    return res.status(500).json({ message: "Error al vaciar el carrito", error: error.message });
+    res.status(500).json({ message: "Error al eliminar item", error: error.message });
   }
 };
 
@@ -98,5 +100,5 @@ export {
     getCarrito,
     agregarItemCarrito,
     actualizarCarrito,
-    eliminarCarrito
+    eliminarItemCarrito
 }
